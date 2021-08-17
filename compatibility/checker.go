@@ -17,8 +17,8 @@
 package compatibility
 
 import (
-	"github.com/compose-spec/compose-go/errdefs"
-	"github.com/compose-spec/compose-go/types"
+	"github.com/benjaminbear/compose-go/errdefs"
+	"github.com/benjaminbear/compose-go/types"
 )
 
 type Checker interface {

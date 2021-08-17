@@ -19,7 +19,7 @@ package compatibility
 import (
 	"fmt"
 
-	"github.com/compose-spec/compose-go/errdefs"
+	"github.com/benjaminbear/compose-go/errdefs"
 	"github.com/pkg/errors"
 )
 

@@ -1,4 +1,4 @@
-module github.com/compose-spec/compose-go
+module github.com/benjaminbear/compose-go
 
 go 1.16
 

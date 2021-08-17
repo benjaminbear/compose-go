@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/compose-spec/compose-go/types"
+	"github.com/benjaminbear/compose-go/types"
 	"gopkg.in/yaml.v2"
 	"gotest.tools/v3/assert"
 )
