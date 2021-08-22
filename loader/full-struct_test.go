@@ -582,7 +582,7 @@ func fullExampleYAML(workingDir, homeDir string) string {
     - -p
     - "3000"
     configs:
-    - source: config1
+    - config1
     - source: config2
       target: /my_config
       uid: "103"
@@ -590,10 +590,8 @@ func fullExampleYAML(workingDir, homeDir string) string {
       mode: 288
     container_name: my-web-container
     depends_on:
-      db:
-        condition: service_started
-      redis:
-        condition: service_started
+    - db
+    - redis
     deploy:
       mode: replicated
       replicas: 6
@@ -706,105 +704,17 @@ func fullExampleYAML(workingDir, homeDir string) string {
         - alias3
     pid: host
     ports:
-    - mode: ingress
-      target: 3000
-      protocol: tcp
-    - mode: ingress
-      target: 3001
-      protocol: tcp
-    - mode: ingress
-      target: 3002
-      protocol: tcp
-    - mode: ingress
-      target: 3003
-      protocol: tcp
-    - mode: ingress
-      target: 3004
-      protocol: tcp
-    - mode: ingress
-      target: 3005
-      protocol: tcp
-    - mode: ingress
-      target: 8000
-      published: 8000
-      protocol: tcp
-    - mode: ingress
-      target: 8080
-      published: 9090
-      protocol: tcp
-    - mode: ingress
-      target: 8081
-      published: 9091
-      protocol: tcp
-    - mode: ingress
-      target: 22
-      published: 49100
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 8001
-      published: 8001
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5000
-      published: 5000
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5001
-      published: 5001
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5002
-      published: 5002
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5003
-      published: 5003
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5004
-      published: 5004
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5005
-      published: 5005
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5006
-      published: 5006
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5007
-      published: 5007
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5008
-      published: 5008
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5009
-      published: 5009
-      protocol: tcp
-    - mode: ingress
-      host_ip: 127.0.0.1
-      target: 5010
-      published: 5010
-      protocol: tcp
+    - 3000-3005
+    - 8000:8000
+    - 9090-9091:8080-8081
+    - "49100:22"
+    - 127.0.0.1:8001:8001
+    - 127.0.0.1:5000-5010:5000-5010
     privileged: true
     read_only: true
     restart: always
     secrets:
-    - source: secret1
+    - secret1
     - source: secret2
       target: my_secret
       uid: "103"
@@ -830,34 +740,12 @@ func fullExampleYAML(workingDir, homeDir string) string {
       nproc: 65535
     user: someone
     volumes:
-    - type: volume
-      target: /var/lib/mysql
-      volume: {}
-    - type: bind
-      source: /opt/data
-      target: /var/lib/mysql
-      bind:
-        create_host_path: true
-    - type: bind
-      source: %s
-      target: /code
-      bind:
-        create_host_path: true
-    - type: bind
-      source: %s
-      target: /var/www/html
-      bind:
-        create_host_path: true
-    - type: bind
-      source: %s
-      target: /etc/configs/
-      read_only: true
-      bind:
-        create_host_path: true
-    - type: volume
-      source: datavolume
-      target: /var/lib/mysql
-      volume: {}
+    - /var/lib/mysql
+    - /opt/data:/var/lib/mysql
+    - %s:/code
+    - %s:/var/www/html
+    - %s:/etc/configs/:ro
+    - datavolume:/var/lib/mysql
     - type: bind
       source: %s
       target: /opt

@@ -355,7 +355,7 @@ func createTransformHook(additionalTransformers ...Transformer) mapstructure.Dec
 		reflect.TypeOf(map[string]string{}):                      transformMapStringString,
 		reflect.TypeOf(types.UlimitsConfig{}):                    transformUlimits,
 		reflect.TypeOf(types.UnitBytes(0)):                       transformSize,
-		reflect.TypeOf([]types.ServicePortConfig{}):              transformServicePort,
+		reflect.TypeOf(types.ServicePortConfigs{}):               transformServicePort,
 		reflect.TypeOf(types.ServiceSecretConfig{}):              transformStringSourceMap,
 		reflect.TypeOf(types.ServiceConfigObjConfig{}):           transformStringSourceMap,
 		reflect.TypeOf(types.StringOrNumberList{}):               transformStringOrNumberList,

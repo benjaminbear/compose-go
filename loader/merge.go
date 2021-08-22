@@ -34,7 +34,7 @@ var serviceSpecials = &specials{
 		reflect.TypeOf(&types.LoggingConfig{}):           safelyMerge(mergeLoggingConfig),
 		reflect.TypeOf(&types.UlimitsConfig{}):           safelyMerge(mergeUlimitsConfig),
 		reflect.TypeOf([]types.ServiceVolumeConfig{}):    mergeSlice(toServiceVolumeConfigsMap, toServiceVolumeConfigsSlice),
-		reflect.TypeOf([]types.ServicePortConfig{}):      mergeSlice(toServicePortConfigsMap, toServicePortConfigsSlice),
+		reflect.TypeOf(types.ServicePortConfigs{}):       mergeSlice(toServicePortConfigsMap, toServicePortConfigsSlice),
 		reflect.TypeOf([]types.ServiceSecretConfig{}):    mergeSlice(toServiceSecretConfigsMap, toServiceSecretConfigsSlice),
 		reflect.TypeOf([]types.ServiceConfigObjConfig{}): mergeSlice(toServiceConfigObjConfigsMap, toSServiceConfigObjConfigsSlice),
 		reflect.TypeOf(&types.UlimitsConfig{}):           mergeUlimitsConfig,
@@ -131,7 +131,7 @@ func toServiceConfigObjConfigsMap(s interface{}) (map[interface{}]interface{}, e
 }
 
 func toServicePortConfigsMap(s interface{}) (map[interface{}]interface{}, error) {
-	ports, ok := s.([]types.ServicePortConfig)
+	ports, ok := s.(types.ServicePortConfigs)
 	if !ok {
 		return nil, errors.Errorf("not a servicePortConfig slice: %v", s)
 	}

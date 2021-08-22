@@ -127,7 +127,7 @@ var sampleDict = map[string]interface{}{
 	},
 }
 
-var samplePortsConfig = []types.ServicePortConfig{
+var samplePortsConfig = types.ServicePortConfigs{
 	{
 		Mode:      "ingress",
 		Target:    8080,
@@ -1533,7 +1533,7 @@ func TestTransform(t *testing.T) {
 			"published": 10022,
 		},
 	}
-	var ports []types.ServicePortConfig
+	var ports types.ServicePortConfigs
 	err := Transform(source, &ports)
 	assert.NilError(t, err)
 

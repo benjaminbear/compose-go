@@ -146,7 +146,7 @@ type ServiceConfig struct {
 	Pid             string                           `yaml:",omitempty" json:"pid,omitempty"`
 	PidsLimit       int64                            `mapstructure:"pids_limit" yaml:"pids_limit,omitempty" json:"pids_limit,omitempty"`
 	Platform        string                           `yaml:",omitempty" json:"platform,omitempty"`
-	Ports           []ServicePortConfig              `yaml:",omitempty" json:"ports,omitempty"`
+	Ports           ServicePortConfigs               `yaml:",omitempty" json:"ports,omitempty"`
 	Privileged      bool                             `yaml:",omitempty" json:"privileged,omitempty"`
 	PullPolicy      string                           `mapstructure:"pull_policy" yaml:"pull_policy,omitempty" json:"pull_policy,omitempty"`
 	ReadOnly        bool                             `mapstructure:"read_only" yaml:"read_only,omitempty" json:"read_only,omitempty"`
@@ -566,6 +566,66 @@ type ServicePortConfig struct {
 	Extensions map[string]interface{} `yaml:",inline" json:"-"`
 }
 
+type ServicePortConfigs []ServicePortConfig
+
+func (ps ServicePortConfigs) MarshalYAML() (interface{}, error) {
+	var arr []interface{}
+	var rangePorts []ServicePortConfig
+
+	for i, p := range ps {
+		if p.Mode != "ingress" {
+			arr = append(arr, p)
+
+			continue
+		}
+
+		if len(ps) > i+1 {
+			if p.Published+1 == ps[i+1].Published || p.Published == ps[i+1].Published {
+				if p.Target+1 == ps[i+1].Target {
+					rangePorts = append(rangePorts, p)
+
+					continue
+				}
+			}
+		}
+
+		if len(rangePorts) > 0 {
+			rangePorts = append(rangePorts, p)
+		}
+
+		var str string
+		if p.HostIP != "" {
+			str += fmt.Sprintf("%s:", p.HostIP)
+		}
+
+		if p.Published != 0 {
+			if len(rangePorts) > 0 {
+				str += fmt.Sprintf("%d-%d:", rangePorts[0].Published, rangePorts[len(rangePorts)-1].Published)
+			} else {
+				str += fmt.Sprintf("%d:", p.Published)
+			}
+		}
+
+		if len(rangePorts) > 0 {
+			str += fmt.Sprintf("%d-%d", rangePorts[0].Target, rangePorts[len(rangePorts)-1].Target)
+		} else {
+			str += fmt.Sprintf("%d", p.Target)
+		}
+
+		if p.Protocol != "tcp" {
+			str += fmt.Sprintf("/%s", p.Protocol)
+		}
+
+		arr = append(arr, str)
+
+		if len(rangePorts) > 0 {
+			rangePorts = nil
+		}
+	}
+
+	return arr, nil
+}
+
 // ParsePortConfig parse short syntax for service port configuration
 func ParsePortConfig(value string) ([]ServicePortConfig, error) {
 	var portConfigs []ServicePortConfig
@@ -625,6 +685,46 @@ type ServiceVolumeConfig struct {
 	Tmpfs       *ServiceVolumeTmpfs  `yaml:",omitempty" json:"tmpfs,omitempty"`
 
 	Extensions map[string]interface{} `yaml:",inline" json:"-"`
+}
+
+func (v ServiceVolumeConfig) MarshalYAML() (interface{}, error) {
+	var str string
+
+	if v.Type != VolumeTypeBind && v.Type != VolumeTypeVolume {
+		return v, nil
+	}
+
+	if v.Consistency != "" {
+		return v, nil
+	}
+
+	if v.Type == VolumeTypeBind {
+		if v.Bind == nil {
+			return v, nil
+		}
+
+		if !v.Bind.CreateHostPath || v.Bind.Propagation != "" {
+			return v, nil
+		}
+	}
+
+	if v.Type == VolumeTypeVolume {
+		if v.Volume.NoCopy {
+			return v, nil
+		}
+	}
+
+	if v.Source != "" {
+		str += fmt.Sprintf("%s:", v.Source)
+	}
+
+	str += v.Target
+
+	if v.ReadOnly {
+		str += ":ro"
+	}
+
+	return str, nil
 }
 
 const (
@@ -690,8 +790,24 @@ type FileReferenceConfig struct {
 // ServiceConfigObjConfig is the config obj configuration for a service
 type ServiceConfigObjConfig FileReferenceConfig
 
+func (c ServiceConfigObjConfig) MarshalYAML() (interface{}, error) {
+	if (c.Target != c.Source && c.Target != "") || c.GID != "" || c.UID != "" || c.Mode != nil {
+		return c, nil
+	}
+
+	return c.Source, nil
+}
+
 // ServiceSecretConfig is the secret configuration for a service
 type ServiceSecretConfig FileReferenceConfig
+
+func (s ServiceSecretConfig) MarshalYAML() (interface{}, error) {
+	if (s.Target != s.Source && s.Target != "") || s.GID != "" || s.UID != "" || s.Mode != nil {
+		return s, nil
+	}
+
+	return s.Source, nil
+}
 
 // UlimitsConfig the ulimit configuration
 type UlimitsConfig struct {
@@ -819,6 +935,20 @@ type DependsOnConfig map[string]ServiceDependency
 type ServiceDependency struct {
 	Condition  string                 `yaml:",omitempty" json:"condition,omitempty"`
 	Extensions map[string]interface{} `yaml:",inline" json:"-"`
+}
+
+func (d DependsOnConfig) MarshalYAML() (interface{}, error) {
+	var arr []interface{}
+
+	for name, c := range d {
+		if c.Condition != ServiceConditionStarted {
+			return d, nil
+		}
+
+		arr = append(arr, name)
+	}
+
+	return arr, nil
 }
 
 type ExtendsConfig MappingWithEquals
